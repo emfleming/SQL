@@ -1,0 +1,107 @@
+--I am analyzing customer order history data from multiple tables for this project.
+
+--First, I filtered out rows with missing data and summarized all orders placed in January.
+SELECT COUNT(orderid) AS Orders_Placed
+FROM BIT_DB.JanSales 
+WHERE length(orderid) = 6 
+AND orderid <> 'Order ID'
+;
+--Next, I filtered the orders to show which of them were iPhones.
+SELECT COUNT(orderid) AS iPhone_Orders
+FROM BIT_DB.JanSales 
+WHERE Product='iPhone'
+AND length(orderid) = 6 
+AND orderid <> 'Order ID'
+;
+--Then I selected all customer account numbers for orders placed in February.
+SELECT distinct cust.acctnum 
+FROM BIT_DB.customers cust
+LEFT JOIN BIT_DB.FebSales feb
+ON cust.order_id=feb.orderid
+WHERE length(feb.orderid) = 6 
+AND feb.orderid <> 'Order ID'
+;
+--Next, I determined the cheapest product sold in January and its price.
+SELECT distinct Product
+,Price 
+FROM BIT_DB.JanSales
+WHERE length(orderid) = 6 
+AND orderid <> 'Order ID'
+AND price <= (SELECT MIN(price)
+FROM BIT_DB.JanSales)
+;
+--I then specified the total revenue of each product sold in January.
+SELECT SUM(Quantity)*price AS Total_Revenue
+,Product
+FROM BIT_DB.JanSales
+GROUP BY Product
+;
+--I analyzed the products sold at a specific location, the total revenue of each product, and the total amount sold for each product.
+SELECT Product
+,SUM(Quantity) AS Amount_Sold
+,SUM(Quantity)*price AS Total_Revenue
+FROM BIT_DB.FebSales
+WHERE location = '548 Lincoln St, Seattle, WA 98101'
+AND length(orderid) = 6 
+AND orderid <> 'Order ID'
+GROUP BY product
+;
+--Next, I selected the customers who purchased more than two products and the average amount they spent.
+SELECT COUNT(distinct cust.acctnum) AS Customers
+,ROUND(AVG(feb.Quantity*feb.price),2) AS AVG_Spent
+FROM BIT_DB.FebSales feb
+LEFT JOIN BIT_DB.customers cust
+ON feb.orderid=cust.order_id
+WHERE feb.Quantity > 2
+AND length(feb.orderid) = 6 
+AND feb.orderid <> 'Order ID'
+;
+--Then I determined the total products sold in Los Angeles in February.
+SELECT Product
+,SUM(Quantity) AS Amount_Sold
+FROM BIT_DB.FebSales 
+WHERE location LIKE '%Los Angeles%'
+GROUP BY Product
+;
+--I calculated the locations in New York with three or more orders in January.
+SELECT distinct location
+,COUNT(Quantity) AS Orders
+FROM BIT_DB.JanSales 
+WHERE location LIKE '%New York%'
+AND length(orderid) = 6 
+AND orderid <> 'Order ID'
+GROUP BY location
+HAVING COUNT(Quantity) >= 3
+;
+--I then selected the total sold of each headphone type in February.
+SELECT Product
+,SUM(Quantity) AS Total_Sold
+FROM BIT_DB.FebSales 
+WHERE Product LIKE '%headphone%'
+AND length(orderid) = 6 
+AND orderid <> 'Order ID'
+GROUP BY Product
+;
+--Next, I calculated the average spent for each account in February.
+SELECT ROUND(AVG(feb.Quantity*feb.price),2) AS AVG_Spending
+FROM BIT_DB.FebSales feb
+LEFT JOIN BIT_DB.customers cust
+ON feb.orderid=cust.order_id
+WHERE length(feb.orderid) = 6 
+AND feb.orderid <> 'Order ID'
+;
+--Then I investigated the average quantity of products purchased by each account in February.
+SELECT ROUND(SUM(feb.Quantity)/COUNT(cust.acctnum)) AS AVG_Bought
+FROM BIT_DB.FebSales feb
+LEFT JOIN BIT_DB.customers cust
+ON feb.orderid=cust.order_id
+WHERE length(feb.orderid) = 6 
+AND feb.orderid <> 'Order ID'
+;
+--Finally, I selected the product that brought in the most revenue for January and its total revenue.
+SELECT Product, ROUND(SUM(Quantity*price),2) AS Revenue
+FROM BIT_DB.JanSales
+GROUP BY Product
+ORDER BY ROUND(SUM(Quantity*price),2) DESC
+LIMIT 1
+;
