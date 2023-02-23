@@ -1,0 +1,44 @@
+--In this project, I am querying Pokemon data to quantify statistics.
+
+--I determined which Pokemon has the most and least health points.
+SELECT name
+,MAX(HP) AS max_hp 
+FROM pokemon
+;
+SELECT name
+,MIN(HP) AS min_hp 
+FROM pokemon
+;
+
+--Next, I specified the average speed of all the Pokemon.
+SELECT AVG(Speed) AS avg_spd 
+FROM pokemon
+;
+
+--Then I selected the Pokemon types with an average attack value greater than 95.
+SELECT Type_1
+,AVG(Attack) AS avg_atk 
+FROM pokemon 
+GROUP BY Type_1 
+HAVING avg_atk > 95
+;
+
+--Next, I defined the Pokemon considered fast, average, or slow.
+SELECT COUNT(*) AS Total
+,CASE
+WHEN Speed > 90 THEN "Fast"
+WHEN Speed > 68 THEN "Average"
+ELSE "Slow"
+END AS "speed_cat"
+FROM pokemon 
+GROUP BY speed_cat
+;
+
+--Finally, I determined how many Pokemon are both ghost and grass types.
+SELECT COUNT(*) AS Total
+FROM pokemon 
+WHERE Type_1 = "Grass" 
+AND Type_2 = "Ghost" 
+OR Type_1 = "Ghost" 
+AND Type_2 = "Grass"
+;
