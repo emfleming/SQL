@@ -1,0 +1,49 @@
+--This project involved querying multiple tables in a database to provide insights into customer data for a digital media store.
+
+--First, I searched which customers were outside the USA.
+SELECT FirstName
+,LastName
+,CustomerID
+,Country 
+FROM chinook.customers
+WHERE Country != 'USA'
+;
+--Next, I found the invoices of customers from France.
+SELECT cust.FirstName
+,cust.LastName
+,inv.InvoiceID
+,inv.InvoiceDate
+,inv.BillingCountry
+FROM chinook.invoices inv 
+LEFT JOIN chinook.customers cust
+ON inv.CustomerID=cust.CustomerID
+WHERE inv.BillingCountry = 'France'
+;
+--Then I calculated the invoice total of each customer, their country and the sales agent that helped them.
+SELECT emp.FirstName AS Employee_First
+,emp.LastName AS Employee_Last
+,cust.FirstName AS Customer_First
+,cust.LastName AS Customer_Last
+,cust.Country
+,inv.Total
+FROM chinook.invoices inv
+JOIN chinook.customers cust ON cust.CustomerID=inv.CustomerID
+JOIN chinook.employees emp ON emp.EmployeeID=cust.SupportRepID
+;
+--Finally, I analyzed the total cost each customer spent for their invoices and displayed each customer's purchased tracks, albums, media type, and genre.
+SELECT cust.FirstName AS Customer_First
+,cust.LastName AS Customer_Last
+,SUM(inv.Total) OVER(PARTITION BY inv.InvoiceId) AS Invoice_Total
+,trk.Name AS Track_Name
+,alb.Title AS Album_Title
+,mt.Name AS Media_Type
+,gn.Name AS Genre_Name
+FROM chinook.customers cust
+JOIN chinook.invoices inv ON inv.CustomerId=cust.CustomerId
+JOIN chinook.invoice_items init ON init.InvoiceId=inv.InvoiceId
+JOIN chinook.tracks trk ON trk.TrackId=init.TrackId
+JOIN chinook.albums alb ON alb.AlbumId=trk.AlbumId
+JOIN chinook.media_types mt ON mt.MediaTypeId=trk.MediaTypeId
+JOIN chinook.genres gn ON gn.GenreId=trk.GenreId
+ORDER BY cust.FirstName
+;
